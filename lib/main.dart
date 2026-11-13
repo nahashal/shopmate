@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'core/theme/app_theme.dart';
 import 'core/navigation/main_navigation.dart';
+import 'core/theme/app_theme.dart';
+import 'features/cart/presentation/bloc/cart_bloc.dart';
 import 'injection_container.dart';
 
 void main() {
@@ -14,11 +16,14 @@ class ShopMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ShopMate',
-      theme: AppTheme.lightTheme,
-      home: const MainNavigation(),
+    return BlocProvider(
+      create: (_) => CartBloc(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'ShopMate',
+        theme: AppTheme.lightTheme,
+        home: const MainNavigation(),
+      ),
     );
   }
 }

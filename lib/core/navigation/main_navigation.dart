@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/cart/presentation/pages/cart_page.dart';
 import '../widgets/shopmate_bottom_nav.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/products/presentation/bloc/product_bloc.dart';
@@ -17,12 +18,12 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
+  late final List<Widget> _screens = [
     BlocProvider(
       create: (_) => getIt<ProductBloc>()..add(const ProductFetchRequested()),
       child: const HomePage(),
     ),
-    const Center(child: Text('Shopping Cart')),
+    CartPage(onStartShopping: () => _onItemSelected(0)),
     const Center(child: Text('Favorites')),
     const Center(child: Text('Profile')),
   ];
