@@ -11,6 +11,7 @@ import 'features/products/domain/usecases/get_products.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'features/authentication/presentation/bloc/auth_bloc.dart';
 import 'features/authentication/data/repositories/auth_repository_impl.dart';
 import 'features/authentication/domain/repositories/auth_repository.dart';
 import 'features/products/presentation/bloc/product_bloc.dart';
@@ -22,6 +23,7 @@ void setupDependencies() {
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(FirebaseAuth.instance),
   );
+  getIt.registerFactory<AuthBloc>(() => AuthBloc(getIt<AuthRepository>()));
   // Dio client
   getIt.registerLazySingleton<Dio>(() => DioClient.createDio());
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'features/authentication/presentation/bloc/auth_bloc.dart';
+import 'features/authentication/presentation/bloc/auth_event.dart';
 import 'core/navigation/main_navigation.dart';
 import 'core/theme/app_theme.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
@@ -16,8 +18,13 @@ class ShopMateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CartBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => getIt<AuthBloc>()..add(const AuthStarted()),
+        ),
+        BlocProvider(create: (_) => CartBloc()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ShopMate',
