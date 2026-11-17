@@ -9,11 +9,19 @@ import 'features/products/data/repositories/product_repository_impl.dart';
 import 'features/products/domain/repositories/product_repository.dart';
 import 'features/products/domain/usecases/get_products.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'features/authentication/data/repositories/auth_repository_impl.dart';
+import 'features/authentication/domain/repositories/auth_repository.dart';
 import 'features/products/presentation/bloc/product_bloc.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Auth
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(FirebaseAuth.instance),
+  );
   // Dio client
   getIt.registerLazySingleton<Dio>(() => DioClient.createDio());
 
