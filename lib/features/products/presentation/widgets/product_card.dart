@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../favorites/presentation/bloc/favorites_event.dart';
+import '../../../favorites/presentation/bloc/favorites_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/product.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
-  final VoidCallback? onFavoriteTap;
 
-  const ProductCard({super.key, required this.product, this.onFavoriteTap});
+  const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -47,20 +50,30 @@ class ProductCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: GestureDetector(
-                    onTap: onFavoriteTap,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.favorite_border,
-                        size: 19,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                  child: BlocSelector<FavoritesBloc, FavoritesState, bool>(
+                    selector: (state) => state.isFavorite(product.id),
+                    builder: (context, isFavorite) {
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => context.read<FavoritesBloc>().add(
+                          FavoriteToggled(product),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.surface,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 19,
+                            color: isFavorite
+                                ? Colors.red
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

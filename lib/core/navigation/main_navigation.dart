@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/favorites/presentation/bloc/favorites_bloc.dart';
+import '../../features/favorites/presentation/bloc/favorites_state.dart';
+import '../../features/favorites/presentation/pages/favorites_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/cart/presentation/bloc/cart_bloc.dart';
 import '../../features/cart/presentation/bloc/cart_state.dart';
@@ -27,7 +30,7 @@ class _MainNavigationState extends State<MainNavigation> {
       child: const HomePage(),
     ),
     CartPage(onStartShopping: () => _onItemSelected(0)),
-    const Center(child: Text('Favorites')),
+    FavoritesPage(onStartShopping: () => _onItemSelected(0)),
     const ProfilePage(),
   ];
 
@@ -39,17 +42,27 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BlocSelector<CartBloc, CartState, int>(
-        selector: (state) => state.itemCount,
-        builder: (context, cartCount) {
-          return ShopMateBottomNav(
-            selectedIndex: _selectedIndex,
-            onItemSelected: _onItemSelected,
-            cartCount: cartCount,
-          );
-        },
+    return BlocListener<FavoritesBloc, FavoritesState>(
+      listenWhen: (previous, current) =>
+          current.errorMessage != null &&
+          previous.errorMessage != current.errorMessage,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+      },
+      child: Scaffold(
+        body: IndexedStack(index: _selectedIndex, children: _screens),
+        bottomNavigationBar: BlocSelector<CartBloc, CartState, int>(
+          selector: (state) => state.itemCount,
+          builder: (context, cartCount) {
+            return ShopMateBottomNav(
+              selectedIndex: _selectedIndex,
+              onItemSelected: _onItemSelected,
+              cartCount: cartCount,
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../favorites/presentation/bloc/favorites_event.dart';
+import '../../../favorites/presentation/bloc/favorites_state.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../cart/presentation/bloc/cart_state.dart';
@@ -35,7 +38,19 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_border)),
+          BlocSelector<FavoritesBloc, FavoritesState, bool>(
+            selector: (state) => state.isFavorite(product.id),
+            builder: (context, isFavorite) {
+              return IconButton(
+                onPressed: () =>
+                    context.read<FavoritesBloc>().add(FavoriteToggled(product)),
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : null,
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
