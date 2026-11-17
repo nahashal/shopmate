@@ -10,7 +10,11 @@ import 'features/products/domain/repositories/product_repository.dart';
 import 'features/products/domain/usecases/get_products.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'features/favorites/data/repositories/favorites_repository_impl.dart';
+import 'features/favorites/domain/repositories/favorites_repository.dart';
+import 'features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'features/authentication/presentation/bloc/auth_bloc.dart';
 import 'features/authentication/data/repositories/auth_repository_impl.dart';
 import 'features/authentication/domain/repositories/auth_repository.dart';
@@ -19,6 +23,13 @@ import 'features/products/presentation/bloc/product_bloc.dart';
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Favorites
+  getIt.registerLazySingleton<FavoritesRepository>(
+    () => FavoritesRepositoryImpl(FirebaseFirestore.instance),
+  );
+  getIt.registerFactory<FavoritesBloc>(
+    () => FavoritesBloc(getIt<FavoritesRepository>()),
+  );
   // Auth
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(FirebaseAuth.instance),

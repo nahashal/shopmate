@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../favorites/presentation/bloc/favorites_event.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../../core/navigation/main_navigation.dart';
@@ -14,12 +16,27 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) =>
-          previous.isAuthenticated && !current.isAuthenticated,
-      listener: (context, state) {
-        context.read<CartBloc>().add(const CartCleared());
-      },
+    return MultiBlocListener(
+      listeners: [
+        // Logged in → start loading this user's favourites
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) =>
+              !previous.isAuthenticated && current.isAuthenticated,
+          listener: (context, state) {
+            context.read<FavoritesBloc>().add(FavoritesStarted(state.user!.id));
+          },
+        ),
+
+        // Logged out → clear cart and favourites
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) =>
+              previous.isAuthenticated && !current.isAuthenticated,
+          listener: (context, state) {
+            context.read<CartBloc>().add(const CartCleared());
+            context.read<FavoritesBloc>().add(const FavoritesStopped());
+          },
+        ),
+      ],
       child: BlocBuilder<AuthBloc, AuthState>(
         buildWhen: (previous, current) => previous.status != current.status,
         builder: (context, state) {
