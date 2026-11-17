@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/cart/presentation/bloc/cart_bloc.dart';
 import '../../features/cart/presentation/bloc/cart_state.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
@@ -27,7 +28,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ),
     CartPage(onStartShopping: () => _onItemSelected(0)),
     const Center(child: Text('Favorites')),
-    const Center(child: Text('Profile')),
+    const ProfilePage(),
   ];
 
   void _onItemSelected(int index) {

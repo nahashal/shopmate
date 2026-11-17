@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../cart/presentation/bloc/cart_bloc.dart';
+import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
@@ -12,18 +14,25 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) {
-        switch (state.status) {
-          case AuthStatus.unknown:
-            return const _SplashScreen();
-          case AuthStatus.authenticated:
-            return const MainNavigation();
-          case AuthStatus.unauthenticated:
-            return const LoginPage();
-        }
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          previous.isAuthenticated && !current.isAuthenticated,
+      listener: (context, state) {
+        context.read<CartBloc>().add(const CartCleared());
       },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        buildWhen: (previous, current) => previous.status != current.status,
+        builder: (context, state) {
+          switch (state.status) {
+            case AuthStatus.unknown:
+              return const _SplashScreen();
+            case AuthStatus.authenticated:
+              return const MainNavigation();
+            case AuthStatus.unauthenticated:
+              return const LoginPage();
+          }
+        },
+      ),
     );
   }
 }
