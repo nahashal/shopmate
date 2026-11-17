@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/cart/presentation/bloc/cart_bloc.dart';
+import '../../features/cart/presentation/bloc/cart_state.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../widgets/shopmate_bottom_nav.dart';
 import '../../features/home/presentation/pages/home_page.dart';
@@ -38,9 +40,15 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: ShopMateBottomNav(
-        selectedIndex: _selectedIndex,
-        onItemSelected: _onItemSelected,
+      bottomNavigationBar: BlocSelector<CartBloc, CartState, int>(
+        selector: (state) => state.itemCount,
+        builder: (context, cartCount) {
+          return ShopMateBottomNav(
+            selectedIndex: _selectedIndex,
+            onItemSelected: _onItemSelected,
+            cartCount: cartCount,
+          );
+        },
       ),
     );
   }
