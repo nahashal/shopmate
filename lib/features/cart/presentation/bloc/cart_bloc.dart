@@ -1,64 +1,135 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/cart_item.dart';
+import '../../domain/repositories/cart_repository.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
-  CartBloc() : super(const CartState()) {
+  final CartRepository _repository;
+
+  StreamSubscription<List<CartItem>>? _subscription;
+  String? _userId;
+
+  CartBloc(this._repository) : super(const CartState()) {
+    on<CartStarted>(_onStarted);
+    on<CartStopped>(_onStopped);
+    on<CartUpdated>((event, emit) => emit(CartState(items: event.items)));
     on<CartItemAdded>(_onItemAdded);
     on<CartItemRemoved>(_onItemRemoved);
     on<CartQuantityChanged>(_onQuantityChanged);
-    on<CartCleared>((event, emit) => emit(const CartState()));
+    on<CartCleared>(_onCleared);
   }
 
-  void _onItemAdded(CartItemAdded event, Emitter<CartState> emit) {
-    final items = List<CartItem>.from(state.items);
+  Future<void> _onStarted(CartStarted event, Emitter<CartState> emit) async {
+    await _subscription?.cancel();
+    _userId = event.userId;
 
-    final index = items.indexWhere(
-      (item) => item.product.id == event.product.id,
-    );
+    emit(const CartState(isLoading: true));
 
-    if (index >= 0) {
-      // Already in cart: increase quantity, but not beyond stock
-      final existing = items[index];
-      if (existing.quantity < event.product.stock) {
-        items[index] = existing.copyWith(quantity: existing.quantity + 1);
+    _subscription = _repository
+        .watchCart(event.userId)
+        .listen(
+          (items) => add(CartUpdated(items)),
+          onError: (_) => add(const CartUpdated([])),
+        );
+  }
+
+  Future<void> _onStopped(CartStopped event, Emitter<CartState> emit) async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _userId = null;
+    emit(const CartState());
+  }
+
+  Future<void> _onItemAdded(
+    CartItemAdded event,
+    Emitter<CartState> emit,
+  ) async {
+    final userId = _userId;
+    if (userId == null) return;
+
+    final product = event.product;
+    final current = state.quantityOf(product.id);
+
+    await _run(emit, () {
+      if (current == 0) {
+        return _repository.addItem(userId, product);
       }
-    } else {
-      // New product: add with quantity 1
-      items.add(CartItem(product: event.product));
-    }
-
-    emit(CartState(items: items));
+      if (current < product.stock) {
+        return _repository.updateQuantity(userId, product.id, current + 1);
+      }
+      return Future.value(); // Already at stock limit
+    });
   }
 
-  void _onItemRemoved(CartItemRemoved event, Emitter<CartState> emit) {
-    final items = state.items
-        .where((item) => item.product.id != event.productId)
-        .toList();
+  Future<void> _onItemRemoved(
+    CartItemRemoved event,
+    Emitter<CartState> emit,
+  ) async {
+    final userId = _userId;
+    if (userId == null) return;
 
-    emit(CartState(items: items));
+    await _run(emit, () => _repository.removeItem(userId, event.productId));
   }
 
-  void _onQuantityChanged(CartQuantityChanged event, Emitter<CartState> emit) {
-    // Quantity 0 or less means remove the item
+  Future<void> _onQuantityChanged(
+    CartQuantityChanged event,
+    Emitter<CartState> emit,
+  ) async {
+    final userId = _userId;
+    if (userId == null) return;
+
     if (event.quantity <= 0) {
-      _onItemRemoved(CartItemRemoved(event.productId), emit);
+      await _run(emit, () => _repository.removeItem(userId, event.productId));
       return;
     }
 
-    final items = state.items.map((item) {
-      if (item.product.id != event.productId) return item;
+    final item = state.items
+        .where((item) => item.product.id == event.productId)
+        .firstOrNull;
+    if (item == null) return;
 
-      final maxQuantity = item.product.stock;
-      final newQuantity = event.quantity > maxQuantity
-          ? maxQuantity
-          : event.quantity;
+    final maxQuantity = item.product.stock;
+    final quantity = event.quantity > maxQuantity
+        ? maxQuantity
+        : event.quantity;
 
-      return item.copyWith(quantity: newQuantity);
-    }).toList();
+    await _run(
+      emit,
+      () => _repository.updateQuantity(userId, event.productId, quantity),
+    );
+  }
 
-    emit(CartState(items: items));
+  Future<void> _onCleared(CartCleared event, Emitter<CartState> emit) async {
+    final userId = _userId;
+    if (userId == null) return;
+
+    await _run(emit, () => _repository.clearCart(userId));
+  }
+
+  /// Runs a Firestore write and shows a friendly error if it fails.
+  Future<void> _run(
+    Emitter<CartState> emit,
+    Future<void> Function() action,
+  ) async {
+    try {
+      await action();
+      // No emit needed: the Firestore stream sends the updated cart.
+    } catch (_) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Could not update your cart. Check your connection.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 }

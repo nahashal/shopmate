@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../favorites/presentation/bloc/favorites_bloc.dart';
-import '../../../favorites/presentation/bloc/favorites_event.dart';
-import '../../../cart/presentation/bloc/cart_bloc.dart';
-import '../../../cart/presentation/bloc/cart_event.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../cart/presentation/bloc/cart_bloc.dart';
+import '../../../cart/presentation/bloc/cart_event.dart';
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../favorites/presentation/bloc/favorites_event.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_state.dart';
 import 'login_page.dart';
@@ -18,21 +18,24 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // Logged in → start loading this user's favourites
+        // Logged in → start loading this user's favourites and cart
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (previous, current) =>
               !previous.isAuthenticated && current.isAuthenticated,
           listener: (context, state) {
-            context.read<FavoritesBloc>().add(FavoritesStarted(state.user!.id));
+            final userId = state.user!.id;
+            context.read<FavoritesBloc>().add(FavoritesStarted(userId));
+            context.read<CartBloc>().add(CartStarted(userId));
           },
         ),
 
-        // Logged out → clear cart and favourites
+        // Logged out → stop listening and empty what's on screen.
+        // CartStopped does NOT delete the saved cart in Firestore.
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (previous, current) =>
               previous.isAuthenticated && !current.isAuthenticated,
           listener: (context, state) {
-            context.read<CartBloc>().add(const CartCleared());
+            context.read<CartBloc>().add(const CartStopped());
             context.read<FavoritesBloc>().add(const FavoritesStopped());
           },
         ),

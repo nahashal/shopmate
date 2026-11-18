@@ -4,8 +4,14 @@ import '../../domain/entities/cart_item.dart';
 
 class CartState extends Equatable {
   final List<CartItem> items;
+  final bool isLoading;
+  final String? errorMessage;
 
-  const CartState({this.items = const []});
+  const CartState({
+    this.items = const [],
+    this.isLoading = false,
+    this.errorMessage,
+  });
 
   bool get isEmpty => items.isEmpty;
 
@@ -20,6 +26,18 @@ class CartState extends Equatable {
     return 0;
   }
 
+  CartState copyWith({
+    List<CartItem>? items,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return CartState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+
   @override
-  List<Object?> get props => [items];
+  List<Object?> get props => [items, isLoading, errorMessage];
 }

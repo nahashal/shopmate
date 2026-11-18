@@ -19,10 +19,18 @@ import 'features/authentication/presentation/bloc/auth_bloc.dart';
 import 'features/authentication/data/repositories/auth_repository_impl.dart';
 import 'features/authentication/domain/repositories/auth_repository.dart';
 import 'features/products/presentation/bloc/product_bloc.dart';
+import 'features/cart/data/repositories/cart_repository_impl.dart';
+import 'features/cart/domain/repositories/cart_repository.dart';
+import 'features/cart/presentation/bloc/cart_bloc.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Cart
+  getIt.registerLazySingleton<CartRepository>(
+    () => CartRepositoryImpl(FirebaseFirestore.instance),
+  );
+  getIt.registerFactory<CartBloc>(() => CartBloc(getIt<CartRepository>()));
   // Favorites
   getIt.registerLazySingleton<FavoritesRepository>(
     () => FavoritesRepositoryImpl(FirebaseFirestore.instance),

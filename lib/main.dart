@@ -30,7 +30,7 @@ class ShopMateApp extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<AuthBloc>()..add(const AuthStarted()),
         ),
-        BlocProvider(create: (_) => CartBloc()),
+        BlocProvider(create: (_) => getIt<CartBloc>()),
         BlocProvider(create: (_) => getIt<FavoritesBloc>()),
       ],
       child: MaterialApp(

@@ -30,7 +30,11 @@ class CartPage extends StatelessWidget {
                 ),
             ],
           ),
-          body: state.isEmpty
+          body: state.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
+              : state.isEmpty
               ? _EmptyCart(onStartShopping: onStartShopping)
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -41,7 +45,7 @@ class CartPage extends StatelessWidget {
                     return CartItemTile(item: state.items[index]);
                   },
                 ),
-          bottomNavigationBar: state.isEmpty
+          bottomNavigationBar: state.isEmpty || state.isLoading
               ? null
               : _CartSummary(subtotal: state.subtotal),
         );
