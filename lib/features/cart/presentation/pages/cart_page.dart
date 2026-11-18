@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../orders/presentation/pages/checkout_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/cart_bloc.dart';
 import '../bloc/cart_event.dart';
@@ -104,11 +105,9 @@ class _CartSummary extends StatelessWidget {
             height: 52,
             child: ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(content: Text('Checkout coming soon')),
-                  );
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const CheckoutPage()));
               },
               child: const Text('Checkout'),
             ),
