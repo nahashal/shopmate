@@ -12,6 +12,9 @@ import 'features/products/domain/usecases/get_products.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'features/orders/data/repositories/order_repository_impl.dart';
+import 'features/orders/domain/repositories/order_repository.dart';
+import 'features/orders/presentation/bloc/checkout_bloc.dart';
 import 'features/favorites/data/repositories/favorites_repository_impl.dart';
 import 'features/favorites/domain/repositories/favorites_repository.dart';
 import 'features/favorites/presentation/bloc/favorites_bloc.dart';
@@ -26,6 +29,13 @@ import 'features/cart/presentation/bloc/cart_bloc.dart';
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Orders
+  getIt.registerLazySingleton<OrderRepository>(
+    () => OrderRepositoryImpl(FirebaseFirestore.instance),
+  );
+  getIt.registerFactory<CheckoutBloc>(
+    () => CheckoutBloc(getIt<OrderRepository>()),
+  );
   // Cart
   getIt.registerLazySingleton<CartRepository>(
     () => CartRepositoryImpl(FirebaseFirestore.instance),
