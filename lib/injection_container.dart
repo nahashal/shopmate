@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 import 'core/network/dio_client.dart';
-
+import 'features/assistant/data/repositories/assistant_repository_impl.dart';
+import 'features/assistant/domain/repositories/assistant_repository.dart';
 import 'features/products/data/datasources/product_remote_data_source.dart';
 import 'features/products/data/repositories/product_repository_impl.dart';
 
@@ -31,6 +32,10 @@ import 'features/orders/presentation/bloc/orders_bloc.dart';
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Assistant
+  getIt.registerFactory<AssistantRepository>(
+    () => AssistantRepositoryImpl(getIt<Dio>()),
+  );
   getIt.registerFactory<OrdersBloc>(() => OrdersBloc(getIt<OrderRepository>()));
   // Orders
   getIt.registerLazySingleton<OrderRepository>(
