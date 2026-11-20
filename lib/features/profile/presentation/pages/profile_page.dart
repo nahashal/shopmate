@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/auth_event.dart';
@@ -83,9 +84,14 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              const _ProfileTile(
+              _ProfileTile(
                 icon: Icons.receipt_long_outlined,
                 title: 'My orders',
+                onTap: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const OrdersPage()));
+                },
               ),
               const _ProfileTile(
                 icon: Icons.location_on_outlined,
@@ -151,8 +157,9 @@ class ProfilePage extends StatelessWidget {
 class _ProfileTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final VoidCallback? onTap;
 
-  const _ProfileTile({required this.icon, required this.title});
+  const _ProfileTile({required this.icon, required this.title, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -177,11 +184,13 @@ class _ProfileTile extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          onTap: () {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text('$title coming soon')));
-          },
+          onTap:
+              onTap ??
+              () {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text('$title coming soon')));
+              },
         ),
       ),
     );

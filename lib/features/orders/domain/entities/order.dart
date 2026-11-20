@@ -5,7 +5,7 @@ import 'shipping_address.dart';
 
 enum OrderStatus { placed, shipped, delivered, cancelled }
 
-class Order extends Equatable {
+class ShopOrder extends Equatable {
   final String id;
   final List<CartItem> items;
   final ShippingAddress address;
@@ -15,7 +15,7 @@ class Order extends Equatable {
   final OrderStatus status;
   final DateTime createdAt;
 
-  const Order({
+  const ShopOrder({
     required this.id,
     required this.items,
     required this.address,

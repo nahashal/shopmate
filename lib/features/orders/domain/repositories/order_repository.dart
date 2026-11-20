@@ -4,7 +4,7 @@ import '../entities/shipping_address.dart';
 
 abstract class OrderRepository {
   /// Emits the user's orders, newest first.
-  Stream<List<Order>> watchOrders(String userId);
+  Stream<List<ShopOrder>> watchOrders(String userId);
 
   /// Saves the order and empties the cart. Returns the new order's ID.
   Future<String> placeOrder({

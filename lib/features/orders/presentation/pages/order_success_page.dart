@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../utils/order_formatters.dart';
+import 'orders_page.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   final String orderId;
 
   const OrderSuccessPage({super.key, required this.orderId});
-
-  String get _shortId => orderId.substring(0, 8).toUpperCase();
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +58,7 @@ class OrderSuccessPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Order #$_shortId',
+                    'Order #${shortOrderId(orderId)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       letterSpacing: 1,
@@ -75,6 +75,19 @@ class OrderSuccessPage extends StatelessWidget {
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     child: const Text('Continue shopping'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const OrdersPage()),
+                      );
+                    },
+                    child: const Text('View my orders'),
                   ),
                 ),
               ],

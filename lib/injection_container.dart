@@ -25,10 +25,12 @@ import 'features/products/presentation/bloc/product_bloc.dart';
 import 'features/cart/data/repositories/cart_repository_impl.dart';
 import 'features/cart/domain/repositories/cart_repository.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
+import 'features/orders/presentation/bloc/orders_bloc.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  getIt.registerFactory<OrdersBloc>(() => OrdersBloc(getIt<OrderRepository>()));
   // Orders
   getIt.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(FirebaseFirestore.instance),
