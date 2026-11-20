@@ -7,6 +7,7 @@ import 'features/products/data/datasources/product_remote_data_source.dart';
 import 'features/products/data/repositories/product_repository_impl.dart';
 
 import 'features/products/domain/repositories/product_repository.dart';
+import 'features/products/domain/usecases/get_categories.dart';
 import 'features/products/domain/usecases/get_products.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -74,9 +75,15 @@ void setupDependencies() {
   getIt.registerLazySingleton<GetProducts>(
     () => GetProducts(getIt<ProductRepository>()),
   );
+  getIt.registerLazySingleton<GetCategories>(
+    () => GetCategories(getIt<ProductRepository>()),
+  );
 
   // BLoC
   getIt.registerFactory<ProductBloc>(
-    () => ProductBloc(getProducts: getIt<GetProducts>()),
+    () => ProductBloc(
+      getProducts: getIt<GetProducts>(),
+      getCategories: getIt<GetCategories>(),
+    ),
   );
 }

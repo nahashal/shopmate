@@ -1,4 +1,4 @@
-import '../../domain/entities/product.dart';
+import '../../domain/entities/product_page.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_data_source.dart';
 
@@ -8,16 +8,20 @@ class ProductRepositoryImpl implements ProductRepository {
   ProductRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Product>> getProducts({int limit = 20, int skip = 0}) async {
-    try {
-      final products = await remoteDataSource.getProducts(
-        limit: limit,
-        skip: skip,
-      );
-
-      return products;
-    } catch (e) {
-      rethrow;
-    }
+  Future<ProductPage> getProducts({
+    int limit = 20,
+    int skip = 0,
+    String category = 'all',
+    String query = '',
+  }) {
+    return remoteDataSource.getProducts(
+      limit: limit,
+      skip: skip,
+      category: category,
+      query: query,
+    );
   }
+
+  @override
+  Future<List<String>> getCategories() => remoteDataSource.getCategories();
 }
