@@ -29,10 +29,20 @@ import 'features/cart/data/repositories/cart_repository_impl.dart';
 import 'features/cart/domain/repositories/cart_repository.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';
 import 'features/orders/presentation/bloc/orders_bloc.dart';
+import 'features/addresses/data/repositories/address_repository_impl.dart';
+import 'features/addresses/domain/repositories/address_repository.dart';
+import 'features/addresses/presentation/bloc/address_bloc.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  // Addresses
+  getIt.registerLazySingleton<AddressRepository>(
+    () => AddressRepositoryImpl(FirebaseFirestore.instance),
+  );
+  getIt.registerFactory<AddressBloc>(
+    () => AddressBloc(getIt<AddressRepository>()),
+  );
   // Assistant
   getIt.registerFactory<AssistantRepository>(
     () => AssistantRepositoryImpl(getIt<Dio>()),

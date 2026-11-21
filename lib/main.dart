@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'features/addresses/presentation/bloc/address_bloc.dart';
 import 'features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'core/theme/app_theme.dart';
 import 'features/authentication/presentation/bloc/auth_bloc.dart';
@@ -27,6 +28,7 @@ class ShopMateApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => getIt<AddressBloc>()),
         BlocProvider(
           create: (_) => getIt<AuthBloc>()..add(const AuthStarted()),
         ),

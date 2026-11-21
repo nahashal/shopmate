@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../addresses/presentation/pages/addresses_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
@@ -93,9 +94,14 @@ class ProfilePage extends StatelessWidget {
                   ).push(MaterialPageRoute(builder: (_) => const OrdersPage()));
                 },
               ),
-              const _ProfileTile(
+              _ProfileTile(
                 icon: Icons.location_on_outlined,
                 title: 'Shipping addresses',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AddressesPage()),
+                  );
+                },
               ),
               const _ProfileTile(
                 icon: Icons.settings_outlined,

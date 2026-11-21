@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../addresses/domain/entities/saved_address.dart';
+import '../../../addresses/presentation/bloc/address_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../authentication/presentation/bloc/auth_bloc.dart';
@@ -53,8 +55,14 @@ class _CheckoutViewState extends State<_CheckoutView> {
     _items = List.of(context.read<CartBloc>().state.items);
 
     // Pre-fill the name from the signed-in user
-    final user = context.read<AuthBloc>().state.user;
-    _nameController.text = user?.displayName ?? '';
+    // Pre-fill from the default saved address, or just the name
+    final defaultAddress = context.read<AddressBloc>().state.defaultAddress;
+    if (defaultAddress != null) {
+      _fillFrom(defaultAddress.address);
+    } else {
+      final user = context.read<AuthBloc>().state.user;
+      _nameController.text = user?.displayName ?? '';
+    }
   }
 
   @override
@@ -65,6 +73,53 @@ class _CheckoutViewState extends State<_CheckoutView> {
     _cityController.dispose();
     _pinController.dispose();
     super.dispose();
+  }
+
+  void _fillFrom(ShippingAddress address) {
+    _nameController.text = address.fullName;
+    _phoneController.text = address.phone;
+    _addressController.text = address.addressLine;
+    _cityController.text = address.city;
+    _pinController.text = address.pinCode;
+  }
+
+  Future<void> _pickSavedAddress(List<SavedAddress> addresses) async {
+    final picked = await showModalBottomSheet<SavedAddress>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(bottom: 16),
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Text(
+                'Choose an address',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
+            for (final saved in addresses)
+              ListTile(
+                leading: const Icon(Icons.location_on_outlined),
+                title: Text(
+                  saved.isDefault ? '${saved.label} (default)' : saved.label,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  '${saved.address.fullName}\n${saved.address.formatted}',
+                ),
+                isThreeLine: true,
+                onTap: () => Navigator.pop(sheetContext, saved),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (picked != null) {
+      setState(() => _fillFrom(picked.address));
+    }
   }
 
   double get _subtotal =>
@@ -141,7 +196,22 @@ class _CheckoutViewState extends State<_CheckoutView> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              const _SectionTitle('Shipping address'),
+              Row(
+                children: [
+                  const Expanded(child: _SectionTitle('Shipping address')),
+                  if (context.watch<AddressBloc>().state.addresses.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TextButton.icon(
+                        onPressed: () => _pickSavedAddress(
+                          context.read<AddressBloc>().state.addresses,
+                        ),
+                        icon: const Icon(Icons.bookmark_outline, size: 18),
+                        label: const Text('Saved'),
+                      ),
+                    ),
+                ],
+              ),
               AuthTextField(
                 controller: _nameController,
                 label: 'Full name',
