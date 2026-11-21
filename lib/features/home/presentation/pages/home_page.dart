@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../assistant/presentation/pages/assistant_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../products/presentation/bloc/product_bloc.dart';
 import '../../../products/presentation/bloc/product_event.dart';
@@ -89,6 +90,16 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.notifications_none),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const AssistantPage()));
+        },
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textPrimary,
+        icon: const Icon(Icons.auto_awesome),
+        label: const Text('Ask AI'),
       ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
@@ -188,10 +199,7 @@ class _HomePageState extends State<HomePage> {
         return [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 48,
-                horizontal: 32,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
               child: Column(
                 children: [
                   Text(
@@ -270,9 +278,8 @@ class _HomePageState extends State<HomePage> {
       child = const CircularProgressIndicator(color: AppColors.primary);
     } else if (state.loadMoreFailed) {
       child = TextButton.icon(
-        onPressed: () => context.read<ProductBloc>().add(
-          const ProductNextPageRequested(),
-        ),
+        onPressed: () =>
+            context.read<ProductBloc>().add(const ProductNextPageRequested()),
         icon: const Icon(Icons.refresh),
         label: const Text('Couldn\'t load more. Tap to retry'),
       );
@@ -287,7 +294,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 88),
       child: Center(child: child),
     );
   }

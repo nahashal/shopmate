@@ -14,6 +14,7 @@ import 'features/products/domain/usecases/get_products.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'features/assistant/presentation/bloc/assistant_bloc.dart';
 import 'features/orders/data/repositories/order_repository_impl.dart';
 import 'features/orders/domain/repositories/order_repository.dart';
 import 'features/orders/presentation/bloc/checkout_bloc.dart';
@@ -35,6 +36,9 @@ void setupDependencies() {
   // Assistant
   getIt.registerFactory<AssistantRepository>(
     () => AssistantRepositoryImpl(getIt<Dio>()),
+  );
+  getIt.registerFactory<AssistantBloc>(
+    () => AssistantBloc(getIt<AssistantRepository>()),
   );
   getIt.registerFactory<OrdersBloc>(() => OrdersBloc(getIt<OrderRepository>()));
   // Orders
