@@ -15,4 +15,10 @@ abstract class AuthRepository {
   });
 
   Future<void> signOut();
+
+  /// Changes the signed-in user's name and returns the updated user.
+  Future<AppUser> updateDisplayName(String name);
+
+  /// Emails the user a link to set a new password.
+  Future<void> sendPasswordResetEmail(String email);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'settings_page.dart';
 import '../../../addresses/presentation/pages/addresses_page.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -103,9 +104,14 @@ class ProfilePage extends StatelessWidget {
                   );
                 },
               ),
-              const _ProfileTile(
+              _ProfileTile(
                 icon: Icons.settings_outlined,
                 title: 'Settings',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsPage()),
+                  );
+                },
               ),
               const SizedBox(height: 24),
 

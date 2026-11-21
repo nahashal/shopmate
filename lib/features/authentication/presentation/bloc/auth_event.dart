@@ -40,3 +40,21 @@ class AuthRegisterRequested extends AuthEvent {
 class AuthSignOutRequested extends AuthEvent {
   const AuthSignOutRequested();
 }
+
+class AuthDisplayNameUpdateRequested extends AuthEvent {
+  final String name;
+
+  const AuthDisplayNameUpdateRequested(this.name);
+
+  @override
+  List<Object?> get props => [name];
+}
+
+class AuthPasswordResetRequested extends AuthEvent {
+  final String email;
+
+  const AuthPasswordResetRequested(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}

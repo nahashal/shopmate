@@ -57,6 +57,29 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() => _firebaseAuth.signOut();
 
+  @override
+  Future<AppUser> updateDisplayName(String name) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw const AuthFailure('You are not signed in.');
+
+    try {
+      await user.updateDisplayName(name.trim());
+      await user.reload();
+      return _toAppUser(_firebaseAuth.currentUser)!;
+    } on FirebaseAuthException catch (e) {
+      throw AuthFailure(_messageFor(e.code));
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw AuthFailure(_messageFor(e.code));
+    }
+  }
+
   AppUser? _toAppUser(User? user) {
     if (user == null) return null;
 

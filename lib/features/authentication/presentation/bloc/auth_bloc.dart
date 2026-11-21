@@ -14,6 +14,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignInRequested>(_onSignInRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
+    on<AuthDisplayNameUpdateRequested>(_onDisplayNameUpdateRequested);
+    on<AuthPasswordResetRequested>(_onPasswordResetRequested);
   }
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
@@ -79,6 +81,59 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     await _authRepository.signOut();
     // The authStateChanges stream will emit null → unauthenticated.
+  }
+
+  Future<void> _onDisplayNameUpdateRequested(
+    AuthDisplayNameUpdateRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(isSubmitting: true));
+
+    try {
+      final user = await _authRepository.updateDisplayName(event.name);
+      emit(
+        AuthState(
+          status: AuthStatus.authenticated,
+          user: user,
+          infoMessage: 'Name updated',
+        ),
+      );
+    } on AuthFailure catch (e) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: e.message));
+    } catch (_) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: 'Something went wrong. Please try again.',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onPasswordResetRequested(
+    AuthPasswordResetRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(isSubmitting: true));
+
+    try {
+      await _authRepository.sendPasswordResetEmail(event.email);
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          infoMessage: 'Password reset link sent to ${event.email}',
+        ),
+      );
+    } on AuthFailure catch (e) {
+      emit(state.copyWith(isSubmitting: false, errorMessage: e.message));
+    } catch (_) {
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: 'Something went wrong. Please try again.',
+        ),
+      );
+    }
   }
 
   AuthState _stateFor(AppUser? user) {
