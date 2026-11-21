@@ -40,21 +40,36 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Future<void> _forgotPassword() async {
+    final email = await showDialog<String>(
+      context: context,
+      builder: (_) =>
+          _ForgotPasswordDialog(initialEmail: _emailController.text.trim()),
+    );
+
+    if (email != null && mounted) {
+      context.read<AuthBloc>().add(AuthPasswordResetRequested(email));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: BlocListener<AuthBloc, AuthState>(
           listenWhen: (previous, current) =>
-              current.errorMessage != null &&
-              previous.errorMessage != current.errorMessage,
+              (current.errorMessage != null &&
+                  previous.errorMessage != current.errorMessage) ||
+              (current.infoMessage != null &&
+                  previous.infoMessage != current.infoMessage),
           listener: (context, state) {
             // Only react if this screen is the one on top
             if (ModalRoute.of(context)?.isCurrent != true) return;
 
+            final message = state.errorMessage ?? state.infoMessage!;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+              ..showSnackBar(SnackBar(content: Text(message)));
           },
           child: Center(
             child: SingleChildScrollView(
@@ -113,7 +128,16 @@ class _LoginPageState extends State<LoginPage> {
                       validator: AuthValidators.required,
                       onFieldSubmitted: (_) => _submit(),
                     ),
-                    const SizedBox(height: 24),
+
+                    // Forgot password link
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        child: const Text('Forgot password?'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
 
                     BlocBuilder<AuthBloc, AuthState>(
                       buildWhen: (previous, current) =>
@@ -164,6 +188,68 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ForgotPasswordDialog extends StatefulWidget {
+  final String initialEmail;
+
+  const _ForgotPasswordDialog({required this.initialEmail});
+
+  @override
+  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
+}
+
+class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
+  late final _controller = TextEditingController(text: widget.initialEmail);
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(context, _controller.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Reset password'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your account email and we\'ll send you a link '
+              'to set a new password.',
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.send,
+              onFieldSubmitted: (_) => _send(),
+              decoration: const InputDecoration(labelText: 'Email'),
+              validator: AuthValidators.email,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(onPressed: _send, child: const Text('Send link')),
+      ],
     );
   }
 }
