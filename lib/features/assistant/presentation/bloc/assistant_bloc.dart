@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/chat_message.dart';
 import '../../domain/repositories/assistant_repository.dart';
@@ -44,13 +45,17 @@ class AssistantBloc extends Bloc<AssistantEvent, AssistantState> {
       emit(
         state.copyWith(messages: [...state.messages, reply], isSending: false),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      // Shows the real cause in the Debug Console (debug builds only)
+      debugPrint('ASSISTANT ERROR: $error');
+      debugPrint('$stackTrace');
+
       if (conversationId != _conversationId) return;
 
       emit(
         state.copyWith(
           isSending: false,
-          errorMessage: 'The assistant couldn\'t reply. Check your connection and try again.',
+          errorMessage: kDebugMode ? 'Assistant error: $error' : 'The assistant couldn\'t reply. Check your connection and try again.',
         ),
       );
     }
