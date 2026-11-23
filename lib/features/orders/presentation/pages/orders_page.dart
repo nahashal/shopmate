@@ -80,8 +80,15 @@ class _OrderCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
+          final ordersBloc = context.read<OrdersBloc>();
+
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => OrderDetailsPage(order: order)),
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: ordersBloc,
+                child: OrderDetailsPage(order: order),
+              ),
+            ),
           );
         },
         child: Padding(

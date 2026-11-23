@@ -5,6 +5,8 @@ import '../../../products/data/mappers/product_firestore_mapper.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/shipping_address.dart';
 import '../../domain/repositories/order_repository.dart';
+import '../../domain/entities/order_request.dart';
+import '../../domain/failures/order_action_failure.dart';
 
 class OrderRepositoryImpl implements OrderRepository {
   final FirebaseFirestore _firestore;
@@ -74,6 +76,80 @@ class OrderRepositoryImpl implements OrderRepository {
     return orderRef.id;
   }
 
+  @override
+  Future<void> submitRequest({
+    required String userId,
+    required String orderId,
+    required OrderRequest request,
+  }) async {
+    final ref = _orders(userId).doc(orderId);
+
+    // A transaction reads the LATEST status from the server and writes
+    // only if nothing changed in between.
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(ref);
+      if (!snapshot.exists) {
+        throw const OrderActionFailure('This order no longer exists.');
+      }
+
+      final current = OrderStatus.values.firstWhere(
+        (status) => status.name == snapshot.data()!['status'],
+        orElse: () => OrderStatus.placed,
+      );
+
+      final (allowedFrom, newStatus, notAllowed) = switch (request.type) {
+        OrderRequestType.cancel => (
+          OrderStatus.placed,
+          OrderStatus.cancelled,
+          'This order has already shipped and can no longer be cancelled.',
+        ),
+        OrderRequestType.returnOrder => (
+          OrderStatus.delivered,
+          OrderStatus.returnRequested,
+          'Only delivered orders can be returned.',
+        ),
+        OrderRequestType.exchange => (
+          OrderStatus.delivered,
+          OrderStatus.exchangeRequested,
+          'Only delivered orders can be exchanged.',
+        ),
+      };
+
+      if (current != allowedFrom) {
+        throw OrderActionFailure(notAllowed);
+      }
+
+      transaction.update(ref, {
+        'status': newStatus.name,
+        'request': _requestToMap(request),
+      });
+    });
+  }
+
+  Map<String, dynamic> _requestToMap(OrderRequest request) {
+    return {
+      'type': request.type.name,
+      'reason': request.reason,
+      'comment': request.comment,
+      'createdAt': Timestamp.fromDate(request.createdAt),
+    };
+  }
+
+  OrderRequest? _requestFromMap(Object? raw) {
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
+
+    return OrderRequest(
+      type: OrderRequestType.values.firstWhere(
+        (type) => type.name == map['type'],
+        orElse: () => OrderRequestType.cancel,
+      ),
+      reason: map['reason'] ?? '',
+      comment: map['comment'] ?? '',
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
   ShopOrder _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
     final address = Map<String, dynamic>.from(data['address'] as Map);
@@ -104,6 +180,7 @@ class OrderRepositoryImpl implements OrderRepository {
         orElse: () => OrderStatus.placed,
       ),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
+      request: _requestFromMap(data['request']),
     );
   }
 }

@@ -33,27 +33,27 @@ String shortOrderId(String id) {
 }
 
 String orderStatusLabel(OrderStatus status) {
-  switch (status) {
-    case OrderStatus.placed:
-      return 'Placed';
-    case OrderStatus.shipped:
-      return 'Shipped';
-    case OrderStatus.delivered:
-      return 'Delivered';
-    case OrderStatus.cancelled:
-      return 'Cancelled';
-  }
+  return switch (status) {
+    OrderStatus.placed => 'Placed',
+    OrderStatus.shipped => 'Shipped',
+    OrderStatus.delivered => 'Delivered',
+    OrderStatus.cancelled => 'Cancelled',
+    OrderStatus.returnRequested => 'Return requested',
+    OrderStatus.returned => 'Returned',
+    OrderStatus.exchangeRequested => 'Exchange requested',
+    OrderStatus.exchanged => 'Exchanged',
+  };
 }
 
 Color orderStatusColor(OrderStatus status) {
-  switch (status) {
-    case OrderStatus.placed:
-      return AppColors.primaryDark;
-    case OrderStatus.shipped:
-      return Colors.blue;
-    case OrderStatus.delivered:
-      return Colors.green;
-    case OrderStatus.cancelled:
-      return Colors.red;
-  }
+  return switch (status) {
+    OrderStatus.placed => AppColors.primaryDark,
+    OrderStatus.shipped => Colors.blue,
+    OrderStatus.delivered => Colors.green,
+    OrderStatus.cancelled => Colors.red,
+    OrderStatus.returnRequested => Colors.orange,
+    OrderStatus.returned => Colors.blueGrey,
+    OrderStatus.exchangeRequested => Colors.deepPurple,
+    OrderStatus.exchanged => Colors.teal,
+  };
 }

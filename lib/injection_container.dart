@@ -14,6 +14,7 @@ import 'features/products/domain/usecases/get_products.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'features/orders/presentation/bloc/order_request_bloc.dart';
 import 'features/assistant/presentation/bloc/assistant_bloc.dart';
 import 'features/orders/data/repositories/order_repository_impl.dart';
 import 'features/orders/domain/repositories/order_repository.dart';
@@ -36,6 +37,9 @@ import 'features/addresses/presentation/bloc/address_bloc.dart';
 final getIt = GetIt.instance;
 
 void setupDependencies() {
+  getIt.registerFactory<OrderRequestBloc>(
+    () => OrderRequestBloc(getIt<OrderRepository>()),
+  );
   // Addresses
   getIt.registerLazySingleton<AddressRepository>(
     () => AddressRepositoryImpl(FirebaseFirestore.instance),
