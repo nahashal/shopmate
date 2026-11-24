@@ -15,7 +15,7 @@ class AssistantPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // A fresh conversation every time the screen opens
     return BlocProvider(
-      create: (_) => getIt<AssistantBloc>(),
+      create: (_) => getIt<AssistantBloc>()..add(const AssistantStarted()),
       child: const _AssistantView(),
     );
   }
@@ -105,8 +105,9 @@ class _AssistantViewState extends State<_AssistantView> {
                     );
                   }
 
+                  final showTyping = state.isWaitingForReply;
                   final itemCount =
-                      state.messages.length + (state.isSending ? 1 : 0);
+                      state.messages.length + (showTyping ? 1 : 0);
 
                   // reverse: true keeps the newest message at the bottom
                   // and scrolls there automatically.
@@ -119,11 +120,11 @@ class _AssistantViewState extends State<_AssistantView> {
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      if (state.isSending && index == 0) {
+                      if (showTyping && index == 0) {
                         return const _TypingIndicator();
                       }
 
-                      final offset = state.isSending ? 1 : 0;
+                      final offset = showTyping ? 1 : 0;
                       final message =
                           state.messages[state.messages.length -
                               1 -

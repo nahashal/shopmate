@@ -13,6 +13,11 @@ class AssistantState extends Equatable {
     this.errorMessage,
   });
 
+  /// True between sending and the first streamed word:
+  /// the only time "Thinking..." should show.
+  bool get isWaitingForReply =>
+      isSending && messages.isNotEmpty && messages.last.isUser;
+
   AssistantState copyWith({
     List<ChatMessage>? messages,
     bool? isSending,

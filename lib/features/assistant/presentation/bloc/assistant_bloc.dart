@@ -1,7 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/chat_message.dart';
+import '../../domain/failures/assistant_failure.dart';
 import '../../domain/repositories/assistant_repository.dart';
 import 'assistant_event.dart';
 import 'assistant_state.dart';
@@ -14,8 +15,14 @@ class AssistantBloc extends Bloc<AssistantEvent, AssistantState> {
   int _conversationId = 0;
 
   AssistantBloc(this._repository) : super(const AssistantState()) {
+    on<AssistantStarted>(_onStarted);
     on<AssistantMessageSent>(_onMessageSent);
     on<AssistantReset>(_onReset);
+  }
+
+  void _onStarted(AssistantStarted event, Emitter<AssistantState> emit) {
+    // Start loading in the background; don't wait for it
+    _repository.warmUp();
   }
 
   Future<void> _onMessageSent(
@@ -38,24 +45,43 @@ class AssistantBloc extends Bloc<AssistantEvent, AssistantState> {
       ),
     );
 
-    try {
-      final reply = await _repository.sendMessage(text);
-      if (conversationId != _conversationId) return;
+    var replyShown = false;
 
-      emit(
-        state.copyWith(messages: [...state.messages, reply], isSending: false),
-      );
+    try {
+      await for (final reply in _repository.sendMessage(text)) {
+        if (emit.isDone || conversationId != _conversationId) return;
+
+        // Replace the growing reply each time new text arrives
+        final previous = replyShown
+            ? state.messages.sublist(0, state.messages.length - 1)
+            : state.messages;
+
+        emit(state.copyWith(messages: [...previous, reply], isSending: true));
+        replyShown = true;
+      }
+
+      if (emit.isDone || conversationId != _conversationId) return;
+      emit(state.copyWith(isSending: false));
     } catch (error, stackTrace) {
-      // Shows the real cause in the Debug Console (debug builds only)
       debugPrint('ASSISTANT ERROR: $error');
       debugPrint('$stackTrace');
 
-      if (conversationId != _conversationId) return;
+      if (emit.isDone || conversationId != _conversationId) return;
+
+      // Remove a half-finished reply if the stream broke midway
+      final messages = replyShown
+          ? state.messages.sublist(0, state.messages.length - 1)
+          : state.messages;
 
       emit(
         state.copyWith(
+          messages: messages,
           isSending: false,
-          errorMessage: kDebugMode ? 'Assistant error: $error' : 'The assistant couldn\'t reply. Check your connection and try again.',
+          errorMessage: error is AssistantBusyFailure
+              ? 'The assistant is busy right now. Please try again in a moment.'
+              : kDebugMode
+              ? 'Assistant error: $error'
+              : 'The assistant couldn\'t reply. Check your connection and try again.',
         ),
       );
     }

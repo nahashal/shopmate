@@ -20,3 +20,8 @@ class AssistantMessageSent extends AssistantEvent {
 class AssistantReset extends AssistantEvent {
   const AssistantReset();
 }
+
+/// Sent when the chat screen opens, to prepare the assistant early.
+class AssistantStarted extends AssistantEvent {
+  const AssistantStarted();
+}
